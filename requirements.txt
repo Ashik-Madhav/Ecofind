@@ -1,0 +1,7 @@
+tensorflow
+flask
+opencv-python
+pillow
+scikit-learn
+requests
+gdown

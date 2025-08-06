@@ -1,0 +1,94 @@
+{
+  "crops": [
+    {
+      "name": "Apple",
+      "scientific_name": "Malus domestica",
+      "season": "Autumn",
+      "growth_duration": "150 days"
+    },
+    {
+      "name": "Banana",
+      "scientific_name": "Musa",
+      "season": "Year-round",
+      "growth_duration": "9-12 months"
+    },
+    {
+      "name": "Cotton",
+      "scientific_name": "Gossypium",
+      "season": "Kharif",
+      "growth_duration": "180 days"
+    },
+    {
+      "name": "Grapes",
+      "scientific_name": "Vitis vinifera",
+      "season": "Spring",
+      "growth_duration": "120 days"
+    },
+    {
+      "name": "Jute",
+      "scientific_name": "Corchorus",
+      "season": "Kharif",
+      "growth_duration": "150 days"
+    },
+    {
+      "name": "Maize",
+      "scientific_name": "Zea mays",
+      "season": "Kharif",
+      "growth_duration": "90-120 days"
+    },
+    {
+      "name": "Mango",
+      "scientific_name": "Mangifera indica",
+      "season": "Summer",
+      "growth_duration": "3-6 months"
+    },
+    {
+      "name": "Millets",
+      "scientific_name": "Various species",
+      "season": "Kharif",
+      "growth_duration": "90-120 days"
+    },
+    {
+      "name": "Orange",
+      "scientific_name": "Citrus sinensis",
+      "season": "Winter",
+      "growth_duration": "9 months"
+    },
+    {
+      "name": "Paddy",
+      "scientific_name": "Oryza sativa",
+      "season": "Kharif",
+      "growth_duration": "120-150 days"
+    },
+    {
+      "name": "Papaya",
+      "scientific_name": "Carica papaya",
+      "season": "Year-round",
+      "growth_duration": "6-12 months"
+    },
+    {
+      "name": "Sugarcane",
+      "scientific_name": "Saccharum officinarum",
+      "season": "Spring",
+      "growth_duration": "10-12 months"
+    },
+    {
+      "name": "Tea",
+      "scientific_name": "Camellia sinensis",
+      "season": "Year-round",
+      "growth_duration": "3 years to maturity"
+    },
+    {
+      "name": "Tomato",
+      "scientific_name": "Solanum lycopersicum",
+      "season": "Year-round",
+      "growth_duration": "90-150 days"
+    },
+    {
+      "name": "Wheat",
+      "scientific_name": "Triticum",
+      "season": "Rabi",
+      "growth_duration": "120-150 days"
+    }
+  ]
+}
