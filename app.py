@@ -1,74 +1,74 @@
+import os
 import streamlit as st
+import gdown
+import tensorflow as tf
+from PIL import Image
 import numpy as np
 import cv2
 import json
-import os
-from PIL import Image
-import gdown
-from tensorflow.keras.models import load_model
 
-# -------------------- CONFIGURATION --------------------
-# Set page title and icon
-st.set_page_config(page_title="Ecofind 🌾", page_icon="🌱")
+# Constants
+MODEL_URL = "https://drive.google.com/uc?id=1MVPWJK71yKIdM9xZDTMtp_Oo9pYQfSL5"  # replace with your model's URL
+MODEL_PATH = "crop_classification_model.h5"
+CROP_INFO_FILE = "crop_info.json"
+CLASS_NAMES = ['Apple', 'Banana', 'Cotton', 'Grapes', 'Jute', 'Maize',
+               'Mango', 'Millets', 'Orange', 'Paddy', 'Papaya',
+               'Sugarcane', 'Tea', 'Tomato', 'Wheat']
 
-# -------------------- MODEL LOADING --------------------
-MODEL_URL = "https://drive.google.com/uc?id=1XwhGkn_C_AkA8W_pAuPBjpVJQp8ZjRKT"
-MODEL_PATH = "crop_classifier_model.h5"
-
+# 1. Download model if missing
 if not os.path.exists(MODEL_PATH):
-    with st.spinner("📥 Downloading model..."):
+    with st.spinner("🔽 Downloading model..."):
         gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
 
+# 2. Load model
 try:
-    model = load_model(MODEL_PATH)
+    model = tf.keras.models.load_model(MODEL_PATH)
 except Exception as e:
-    model = None
     st.error(f"❌ Error loading model: {e}")
+    model = None
 
-# -------------------- LOAD CROP INFO --------------------
-with open("crop_info.json", "r") as f:
-    crop_info = json.load(f)
+# 3. Load crop info
+try:
+    with open(CROP_INFO_FILE, 'r') as f:
+        crop_info = json.load(f)
+except Exception as e:
+    st.error(f"❌ Error loading crop_info.json: {e}")
+    crop_info = {"crops": []}
 
-# 15 classes (must match model training)
-CLASS_NAMES = [
-    "Apple", "Banana", "Cotton", "Grapes", "Jute",
-    "Maize", "Mango", "Millets", "Orange", "Paddy",
-    "Papaya", "Sugarcane", "Tea", "Tomato", "Wheat"
-]
+# 4. Streamlit UI & homepage
+st.set_page_config(page_title="Ecofind 🌾", page_icon="🌱")
 
-# -------------------- STREAMLIT UI --------------------
-# Header and instructions
 st.markdown("""
     <div style='text-align: center;'>
         <h1 style='font-size: 3em;'>🌾 <span style='color: green;'>Ecofind</span> – Crop Identifier</h1>
-        <p style='font-size: 1.2em;'>Empowering Farmers & Agri-Researchers with AI 🌱</p>
+        <p style='font-size: 1.2em;'>Empowering Farmers & Agri-Researchers with Technology 🌱</p>
         <hr style='border: 1px solid #ccc;' />
         <p style='font-size: 1.1em;'>Upload an image of a crop's <b>leaf</b>, <b>fruit</b>, or <b>field</b> to identify the crop using AI.</p>
     </div>
 """, unsafe_allow_html=True)
 
-# Sidebar
 st.sidebar.header("🌐 About Ecofind")
 st.sidebar.info("""
 Ecofind is a lightweight AI-powered crop identification tool built for students, farmers, and researchers.
 
-👨‍🌾 Trained on 15 major crops  
+👨‍🌾 Trained on all major crops  
 📸 Accepts leaf, fruit, or field images  
 🔍 Returns crop info instantly  
 📱 Deployable on web & mobile
 """)
-st.sidebar.markdown("---")
-st.sidebar.caption("Built with ❤️ by the Ecofind team.")
 
-# -------------------- FILE UPLOAD --------------------
+st.sidebar.markdown("---")
+st.sidebar.caption("Built with ❤️ by Ashik Madhav.")
+
+# 5. Upload & prediction section
 uploaded_file = st.file_uploader("📸 Upload Crop Image", type=["jpg", "jpeg", "png"])
 
 if uploaded_file and model:
-    # Load and display image
+    # Show uploaded image
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="🖼️ Uploaded Image", use_container_width=True)
 
-    # Preprocess image
+    # Preprocess for model
     img_array = np.array(image)
     img_array = cv2.resize(img_array, (224, 224))
     img_array = img_array / 255.0
@@ -81,8 +81,8 @@ if uploaded_file and model:
 
     st.success(f"🌱 **Predicted Crop: {predicted_crop}**")
 
-    # Display crop info
-    found_crop = next((c for c in crop_info["crops"] if c["name"].lower() == predicted_crop.lower()), None)
+    # Show crop info if available
+    found_crop = next((c for c in crop_info.get("crops", []) if c["name"].lower() == predicted_crop.lower()), None)
 
     if found_crop:
         st.subheader("📄 Crop Information:")
