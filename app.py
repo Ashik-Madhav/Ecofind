@@ -9,11 +9,15 @@ from PIL import Image
 
 # Constants
 MODEL_URL = "https://drive.google.com/uc?export=download&id=1XwhGkn_C_AkA8W_pAuPBjpVJQp8ZjRKT"
-MODEL_PATH = "crop_classifier_model.h5"
+MODEL_PATH = "crop_classification_model.h5"
 CROP_INFO_FILE = "crop_info.json"
 CLASS_NAMES = ['Apple', 'Banana', 'Cotton', 'Grapes', 'Jute', 'Maize',
                'Mango', 'Millets', 'Orange', 'Paddy', 'Papaya',
                'Sugarcane', 'Tea', 'Tomato', 'Wheat']
+
+# Delete corrupted model if exists
+if os.path.exists(MODEL_PATH):
+    os.remove(MODEL_PATH)
 
 # Download model if not already present
 if not os.path.exists(MODEL_PATH):
@@ -44,7 +48,7 @@ uploaded_file = st.file_uploader("📸 Upload Crop Image", type=["jpg", "jpeg", 
 if uploaded_file and model:
     # Load and show image
     image = Image.open(uploaded_file).convert("RGB")
-    st.image(image, caption="Uploaded Image", use_column_width=True)
+    st.image(image, caption="Uploaded Image", use_container_width=True)
 
     # Preprocess image
     img_array = np.array(image)
