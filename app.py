@@ -8,7 +8,7 @@ import gdown
 from PIL import Image
 
 # Constants
-MODEL_URL = "https://drive.google.com/file/d/1XwhGkn_C_AkA8W_pAuPBjpVJQp8ZjRKT/view?usp=drivesdk"
+MODEL_URL = "https://drive.google.com/uc?export=download&id=1XwhGkn_C_AkA8W_pAuPBjpVJQp8ZjRKT"
 MODEL_PATH = "crop_classifier_model.h5"
 CROP_INFO_FILE = "crop_info.json"
 CLASS_NAMES = ['Apple', 'Banana', 'Cotton', 'Grapes', 'Jute', 'Maize',
