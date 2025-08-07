@@ -15,33 +15,38 @@ CLASS_NAMES = ['Apple', 'Banana', 'Cotton', 'Grapes', 'Jute', 'Maize',
                'Mango', 'Millets', 'Orange', 'Paddy', 'Papaya',
                'Sugarcane', 'Tea', 'Tomato', 'Wheat']
 
-# Download model if not exists
+# Download model if not already present
 if not os.path.exists(MODEL_PATH):
-    with st.spinner("Downloading model..."):
+    with st.spinner("🔽 Downloading model..."):
         gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
 
 # Load model
 try:
     model = tf.keras.models.load_model(MODEL_PATH)
 except Exception as e:
-    st.error(f"Error loading model: {e}")
+    st.error(f"❌ Error loading model: {e}")
     model = None
 
 # Load crop info
-with open(CROP_INFO_FILE, 'r') as f:
-    crop_info = json.load(f)
+try:
+    with open(CROP_INFO_FILE, 'r') as f:
+        crop_info = json.load(f)
+except Exception as e:
+    st.error(f"❌ Error loading crop_info.json: {e}")
+    crop_info = {"crops": []}
 
-# Streamlit app
+# Streamlit UI
 st.title("🌾 Ecofind - Crop Identifier")
 st.write("Upload an image of a crop leaf, fruit, or field to identify the crop.")
 
-uploaded_file = st.file_uploader("Upload Crop Image", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("📸 Upload Crop Image", type=["jpg", "jpeg", "png"])
 
 if uploaded_file and model:
-    image = Image.open(uploaded_file)
+    # Load and show image
+    image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Uploaded Image", use_column_width=True)
 
-    # Preprocess
+    # Preprocess image
     img_array = np.array(image)
     img_array = cv2.resize(img_array, (224, 224))
     img_array = img_array / 255.0
@@ -54,13 +59,14 @@ if uploaded_file and model:
 
     st.success(f"🌱 Predicted Crop: **{predicted_crop}**")
 
-    # Show info
-    details = crop_info.get(predicted_crop, {})
-    if details:
-        st.subheader("Crop Information:")
-        for key, value in details.items():
+    # Find crop info by name
+    found_crop = next((c for c in crop_info["crops"] if c["name"].lower() == predicted_crop.lower()), None)
+
+    if found_crop:
+        st.subheader("📄 Crop Information:")
+        for key, value in found_crop.items():
             st.markdown(f"**{key.replace('_', ' ').title()}**: {value}")
     else:
-        st.warning("No additional information found for this crop.")
+        st.warning("ℹ️ No additional information found for this crop.")
 elif not model:
-    st.error("Model not loaded. Please check if the .h5 file is available.")
+    st.error("❌ Model not loaded. Please check if the `.h5` file is available.")
