@@ -1,7 +1,6 @@
+streamlit
 tensorflow
-flask
 opencv-python
 pillow
-scikit-learn
-requests
+numpy
 gdown
