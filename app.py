@@ -1,78 +1,66 @@
-
 import os
 import json
 import cv2
 import numpy as np
+import streamlit as st
 import tensorflow as tf
-from flask import Flask, request, render_template
-from werkzeug.utils import secure_filename
 import gdown
+from PIL import Image
 
-app = Flask(__name__)
-UPLOAD_FOLDER = 'uploads'
-MODEL_PATH = 'crop_classification_model.h5'
-MODEL_URL = 'https://drive.google.com/uc?id=1MVPWJK71yKIdM9xZDTMtp_Oo9pYQfSL5'
+# Constants
+MODEL_URL = "https://drive.google.com/uc?id=1MVPWJK71yKIdM9xZDTMtp_Oo9pYQfSL5"
+MODEL_PATH = "crop_classification_model.h5"
+CROP_INFO_FILE = "crop_info.json"
+CLASS_NAMES = ['Apple', 'Banana', 'Cotton', 'Grapes', 'Jute', 'Maize',
+               'Mango', 'Millets', 'Orange', 'Paddy', 'Papaya',
+               'Sugarcane', 'Tea', 'Tomato', 'Wheat']
 
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-def download_model():
-    if not os.path.exists(MODEL_PATH):
-        print("Downloading model from Google Drive...")
+# Download model if not exists
+if not os.path.exists(MODEL_PATH):
+    with st.spinner("Downloading model..."):
         gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
-        print("Download completed.")
 
-download_model()
-
+# Load model
 try:
     model = tf.keras.models.load_model(MODEL_PATH)
-    print("Model loaded successfully.")
 except Exception as e:
-    print("Error loading model:", e)
+    st.error(f"Error loading model: {e}")
     model = None
 
-with open('crop_info.json', 'r') as f:
+# Load crop info
+with open(CROP_INFO_FILE, 'r') as f:
     crop_info = json.load(f)
 
-crop_names = ['Apple', 'Banana', 'Cotton', 'Grapes', 'Jute', 'Maize',
-              'Mango', 'Millets', 'Orange', 'Paddy', 'Papaya',
-              'Sugarcane', 'Tea', 'Tomato', 'Wheat']
+# Streamlit app
+st.title("🌾 Ecofind - Crop Identifier")
+st.write("Upload an image of a crop leaf, fruit, or field to identify the crop.")
 
-IMG_H, IMG_W = 224, 224
+uploaded_file = st.file_uploader("Upload Crop Image", type=["jpg", "jpeg", "png"])
 
-@app.route('/')
-def home():
-    return render_template('index.html')
+if uploaded_file and model:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    if model is None:
-        return render_template('result.html', prediction="Model not loaded.", info="")
-    if 'file' not in request.files:
-        return render_template('result.html', prediction="No file provided.", info="")
-    file = request.files['file']
-    if file.filename == '':
-        return render_template('result.html', prediction="No file selected.", info="")
+    # Preprocess
+    img_array = np.array(image)
+    img_array = cv2.resize(img_array, (224, 224))
+    img_array = img_array / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
 
-    fname = secure_filename(file.filename)
-    path = os.path.join(UPLOAD_FOLDER, fname)
-    file.save(path)
-    img = cv2.imread(path)
-    if img is None:
-        return render_template('result.html', prediction="Invalid image.", info="")
-    img = cv2.resize(img, (IMG_W, IMG_H))
-    img = img / 255.0
-    img = np.expand_dims(img, axis=0)
+    # Predict
+    prediction = model.predict(img_array)
+    predicted_index = np.argmax(prediction)
+    predicted_crop = CLASS_NAMES[predicted_index]
 
-    preds = model.predict(img)
-    idx = np.argmax(preds)
-    crop = crop_names[idx]
+    st.success(f"🌱 Predicted Crop: **{predicted_crop}**")
 
-    info = crop_info.get(crop, {})
-    info_str = "".join(f"<b>{k.replace('_',' ').title()}:</b> {v}<br>" for k, v in info.items())
-
-    return render_template('result.html', prediction=crop, info=info_str)
-
-if __name__ == "__main__":
-    port = int(os.getenv('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    # Show info
+    details = crop_info.get(predicted_crop, {})
+    if details:
+        st.subheader("Crop Information:")
+        for key, value in details.items():
+            st.markdown(f"**{key.replace('_', ' ').title()}**: {value}")
+    else:
+        st.warning("No additional information found for this crop.")
+elif not model:
+    st.error("Model not loaded. Please check if the .h5 file is available.")
